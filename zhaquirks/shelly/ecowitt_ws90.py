@@ -91,6 +91,38 @@ class ShellyRainCluster(CustomCluster):
         )
 
 
+_WIND_REPORTING = ReportingConfig(
+    min_interval=10,
+    max_interval=900,
+    reportable_change=5,
+)
+_WIND_DIRECTION_REPORTING = ReportingConfig(
+    min_interval=10,
+    max_interval=900,
+    reportable_change=50,
+)
+_GUST_REPORTING = ReportingConfig(
+    min_interval=10,
+    max_interval=900,
+    reportable_change=10,
+)
+_UV_REPORTING = ReportingConfig(
+    min_interval=300,
+    max_interval=900,
+    reportable_change=1,
+)
+_PRECIPITATION_REPORTING = ReportingConfig(
+    min_interval=300,
+    max_interval=900,
+    reportable_change=1,
+)
+_RAIN_STATUS_REPORTING = ReportingConfig(
+    min_interval=0,
+    max_interval=900,
+    reportable_change=1,
+)
+
+
 (
     QuirkBuilder("Shelly", "Ecowitt WS90")
     .replaces(ShellyWindCluster)
@@ -103,9 +135,7 @@ class ShellyRainCluster(CustomCluster):
         unit=UnitOfSpeed.METERS_PER_SECOND,
         device_class=SensorDeviceClass.WIND_SPEED,
         state_class=SensorStateClass.MEASUREMENT,
-        reporting_config=ReportingConfig(
-            min_interval=10, max_interval=900, reportable_change=5
-        ),
+        reporting_config=_WIND_REPORTING,
         fallback_name="Wind speed",
     )
     .sensor(
@@ -115,9 +145,7 @@ class ShellyRainCluster(CustomCluster):
         unit=DEGREE,
         device_class=SensorDeviceClass.WIND_DIRECTION,
         state_class=SensorStateClass.MEASUREMENT_ANGLE,
-        reporting_config=ReportingConfig(
-            min_interval=10, max_interval=900, reportable_change=50
-        ),
+        reporting_config=_WIND_DIRECTION_REPORTING,
         fallback_name="Wind direction",
     )
     .sensor(
@@ -127,9 +155,7 @@ class ShellyRainCluster(CustomCluster):
         unit=UnitOfSpeed.METERS_PER_SECOND,
         device_class=SensorDeviceClass.WIND_SPEED,
         state_class=SensorStateClass.MEASUREMENT,
-        reporting_config=ReportingConfig(
-            min_interval=10, max_interval=900, reportable_change=10
-        ),
+        reporting_config=_GUST_REPORTING,
         translation_key="gust_speed",
         fallback_name="Gust speed",
     )
@@ -138,9 +164,7 @@ class ShellyRainCluster(CustomCluster):
         cluster_id=ShellyUVCluster.cluster_id,
         divisor=10,
         state_class=SensorStateClass.MEASUREMENT,
-        reporting_config=ReportingConfig(
-            min_interval=300, max_interval=900, reportable_change=1
-        ),
+        reporting_config=_UV_REPORTING,
         translation_key="uv_index",
         fallback_name="UV index",
     )
@@ -151,18 +175,14 @@ class ShellyRainCluster(CustomCluster):
         unit=UnitOfPrecipitationDepth.MILLIMETERS,
         device_class=SensorDeviceClass.PRECIPITATION,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        reporting_config=ReportingConfig(
-            min_interval=300, max_interval=900, reportable_change=1
-        ),
+        reporting_config=_PRECIPITATION_REPORTING,
         fallback_name="Precipitation",
     )
     .binary_sensor(
         attribute_name=ShellyRainCluster.AttributeDefs.rain_status.name,
         cluster_id=ShellyRainCluster.cluster_id,
         device_class=BinarySensorDeviceClass.MOISTURE,
-        reporting_config=ReportingConfig(
-            min_interval=0, max_interval=900, reportable_change=1
-        ),
+        reporting_config=_RAIN_STATUS_REPORTING,
         translation_key="rain_detected",
         fallback_name="Rain detected",
     )
