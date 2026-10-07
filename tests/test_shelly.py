@@ -11,7 +11,7 @@ from zigpy.zcl.foundation import ZCLAttributeAccess
 
 import zhaquirks
 from zhaquirks.shelly import SHELLY_MANUFACTURER_CODE
-from zhaquirks.shelly.wifi import (
+from zhaquirks.shelly.ecowitt_ws90 import (\n    ShellyRainCluster,\n    ShellyUVCluster,\n    ShellyWindCluster,\n)\nfrom zhaquirks.shelly.wifi import (
     SHELLY_WIFI_SETUP_CLUSTER_ID,
     SHELLY_WIFI_SETUP_ENDPOINT_ID,
     SHELLY_WIFI_SETUP_PROFILE_ID,
@@ -157,3 +157,53 @@ def test_shelly_wifi_standard_profile_packet_delegated(
     assert rsp_key is not None
     assert rsp_key.endpoint_id == 1
     assert rsp_key.cluster_id == Basic.cluster_id
+
+
+def test_shelly_ecowitt_ws90_v2_quirk(zigpy_device_from_v2_quirk) -> None:
+    """Test the Shelly Ecowitt WS90 custom clusters and attributes."""
+
+    device = zigpy_device_from_v2_quirk(
+        "Shelly",
+        "Ecowitt WS90",
+        cluster_ids={
+            1: {
+                ShellyWindCluster.cluster_id: ClusterType.Server,
+                ShellyUVCluster.cluster_id: ClusterType.Server,
+                ShellyRainCluster.cluster_id: ClusterType.Server,
+            }
+        },
+    )
+
+    endpoint = device.endpoints[1]
+
+    assert isinstance(endpoint.in_clusters[ShellyWindCluster.cluster_id], ShellyWindCluster)
+    assert isinstance(endpoint.in_clusters[ShellyUVCluster.cluster_id], ShellyUVCluster)
+    assert isinstance(endpoint.in_clusters[ShellyRainCluster.cluster_id], ShellyRainCluster)
+
+    wind = endpoint.in_clusters[ShellyWindCluster.cluster_id]
+    assert wind.AttributeDefs.wind_speed.id == 0x0000
+    assert wind.AttributeDefs.wind_direction.id == 0x0004
+    assert wind.AttributeDefs.gust_speed.id == 0x0007
+    assert wind.AttributeDefs.wind_speed.type is t.uint16_t
+    assert wind.AttributeDefs.wind_direction.type is t.uint16_t
+    assert wind.AttributeDefs.gust_speed.type is t.uint16_t
+
+    uv = endpoint.in_clusters[ShellyUVCluster.cluster_id]
+    assert uv.AttributeDefs.uv_index.id == 0x0000
+    assert uv.AttributeDefs.uv_index.type is t.uint8_t
+
+    rain = endpoint.in_clusters[ShellyRainCluster.cluster_id]
+    assert rain.AttributeDefs.rain_status.id == 0x0000
+    assert rain.AttributeDefs.precipitation.id == 0x0001
+    assert rain.AttributeDefs.rain_status.type is t.Bool
+    assert rain.AttributeDefs.precipitation.type is t.uint24_t
+
+    for attribute in (
+        wind.AttributeDefs.wind_speed,
+        wind.AttributeDefs.wind_direction,
+        wind.AttributeDefs.gust_speed,
+        uv.AttributeDefs.uv_index,
+        rain.AttributeDefs.rain_status,
+        rain.AttributeDefs.precipitation,
+    ):
+        assert attribute.manufacturer_code == SHELLY_MANUFACTURER_CODE
